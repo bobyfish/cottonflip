@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>CS2 Case Opener - Choose a Case</title>
+  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      background: #111;
+      color: #eee;
+      font-family: Arial, sans-serif;
+      text-align: center;
+      padding: 40px;
+    }
+    h1 { margin-bottom: 40px; }
+    .cases-grid {
+      display: flex;
+      justify-content: center;
+      gap: 40px;
+      flex-wrap: wrap;
+    }
+    .case-card {
+      background: #222;
+      border: 3px solid #0a84ff;
+      border-radius: 12px;
+      padding: 15px;
+      width: 180px;
+      cursor: pointer;
+      transition: border-color 0.3s;
+      color: #0a84ff;
+      text-decoration: none;
+    }
+    .case-card:hover {
+      border-color: #006fcc;
+    }
+    .case-card img {
+      width: 100%;
+      height: 120px;
+      object-fit: cover;
+      border-radius: 8px;
+      margin-bottom: 10px;
+      pointer-events: none;
+      user-select: none;
+    }
+    .case-name {
+      font-weight: bold;
+      font-size: 18px;
+    }
+  </style>
+</head>
+<body>
+  <h1>Choose a Case to Open</h1>
+  <div class="cases-grid">
+    <a href="cases/final-nail.html" class="case-card">
+      <img src="images/cases/final-nail.jpg" alt="Final Nail in the Coffin" />
+      <div class="case-name">Final Nail in the Coffin</div>
+    </a>
+    <a href="cases/10-percent-cotton.html" class="case-card">
+      <img src="images/cases/10-percent-cotton.jpg" alt="10% Cotton" />
+      <div class="case-name">10% Cotton</div>
+    </a>
+    <a href="cases/lucky-mutant.html" class="case-card">
+      <img src="images/cases/lucky-mutant.jpg" alt="Lucky Mutant" />
+      <div class="case-name">Lucky Mutant</div>
+    </a>
+  </div>
+</body>
+</html>

@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Final Nail in the Coffin - CS2 Case Opener</title>
+  <style>
+    body {
+      text-align: center;
+      font-family: Arial, sans-serif;
+      padding: 40px;
+      background: #111;
+      color: #eee;
+    }
+    h1 {
+      margin-bottom: 20px;
+    }
+    button {
+      padding: 12px 30px;
+      font-size: 18px;
+      cursor: pointer;
+      margin-bottom: 20px;
+      background-color: #0a84ff;
+      border: none;
+      border-radius: 5px;
+      color: white;
+      transition: background-color 0.3s ease;
+    }
+    button:hover {
+      background-color: #006fcc;
+    }
+    #roller-container {
+      width: 400px;
+      height: 80px;
+      margin: 0 auto 30px;
+      overflow: hidden;
+      border: 3px solid #0a84ff;
+      border-radius: 10px;
+      background-color: #222;
+      position: relative;
+    }
+    #roller {
+      display: flex;
+      position: absolute;
+      left: 0;
+      top: 0;
+      height: 80px;
+      align-items: center;
+      transition: left 4s cubic-bezier(0.25, 0.1, 0.25, 1);
+    }
+    .roller-item {
+      flex: 0 0 140px;
+      margin: 0 10px;
+      box-sizing: border-box;
+      background: #444;
+      color: #eee;
+      font-weight: bold;
+      font-size: 18px;
+      line-height: 1.2;
+      border-radius: 8px;
+      user-select: none;
+      box-shadow: 0 0 10px #0a84ff;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      padding: 8px 5px;
+      text-align: center;
+    }
+    .roller-item img {
+      width: 100px;
+      height: auto;
+      max-height: 50px;
+      pointer-events: none;
+      user-select: none;
+      margin: 0 auto;
+      display: block;
+    }
+    #oddsList {
+      color: #0a84ff;
+      font-weight: bold;
+      margin-bottom: 20px;
+    }
+    #backButton {
+      display: inline-block;
+      margin-bottom: 30px;
+      background-color: #555;
+    }
+    #backButton:hover {
+      background-color: #333;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Back Button -->
+  <button id="backButton" onclick="goBack()">Back to Main Page</button>
+
+  <h1 id="caseTitle">Final Nail in the Coffin</h1>
+  <button id="openCase">Open Case</button>
+  <div id="oddsList"></div>
+
+  <div id="roller-container">
+    <div id="roller"></div>
+  </div>
+
+  <script>
+    function goBack() {
+      window.location.href = "../index.html";
+    }
+
+    const items = [
+      { name: "Nail", weight: 70, image: "./images/nail.jpg" },
+      { name: "Hammer", weight: 25, image: "./images/hammer.jpg" },
+      { name: "Coffin", weight: 5, image: "./images/coffin.jpg" },
+    ];
+
+    function getRandomItem() {
+      const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
+      let random = Math.random() * totalWeight;
+      for (const item of items) {
+        if (random < item.weight) return item;
+        random -= item.weight;
+      }
+    }
+
+    function generateScrollItems(count) {
+      const scrollItems = [];
+      for (let i = 0; i < count; i++) {
+        scrollItems.push(getRandomItem());
+      }
+      return scrollItems;
+    }
+
+    function fillRoller(scrollItems) {
+      const roller = document.getElementById('roller');
+      roller.innerHTML = '';
+      scrollItems.forEach(item => {
+        const div = document.createElement('div');
+        div.className = 'roller-item';
+
+        const img = document.createElement('img');
+        img.src = item.image;
+        img.alt = item.name;
+
+        const nameDiv = document.createElement('div');
+        nameDiv.textContent = item.name;
+        nameDiv.style.fontSize = '14px';
+        nameDiv.style.marginTop = '4px';
+
+        div.appendChild(img);
+        div.appendChild(nameDiv);
+        roller.appendChild(div);
+      });
+    }
+
+    function getRollerItemWidth() {
+      const rollerItem = document.querySelector('.roller-item');
+      if (!rollerItem) return 160;
+      const style = getComputedStyle(rollerItem);
+      const width = rollerItem.offsetWidth;
+      const marginLeft = parseFloat(style.marginLeft);
+      const marginRight = parseFloat(style.marginRight);
+      return width + marginLeft + marginRight;
+    }
+
+    function displayOdds() {
+      const oddsListDiv = document.getElementById('oddsList');
+      oddsListDiv.innerHTML = '';
+      const totalWeight = items.reduce((sum, i) => sum + i.weight, 0);
+      items.forEach(item => {
+        const oddsPercent = ((item.weight / totalWeight) * 100).toFixed(1);
+        const p = document.createElement('p');
+        p.textContent = `${item.name}: ${oddsPercent}% chance`;
+        oddsListDiv.appendChild(p);
+      });
+    }
+
+    displayOdds();
+
+    const roller = document.getElementById('roller');
+    const rollerContainer = document.getElementById('roller-container');
+    let isRolling = false;
+
+    document.getElementById('openCase').addEventListener('click', () => {
+      if (isRolling) return;
+      isRolling = true;
+
+      const scrollItemsCount = 30;
+      const finalItem = getRandomItem();
+      const scrollItems = generateScrollItems(scrollItemsCount);
+      scrollItems.push(finalItem);
+
+      fillRoller(scrollItems);
+
+      roller.style.transition = 'none';
+      roller.style.left = '0px';
+      void roller.offsetWidth;
+
+      const rollerItemWidth = getRollerItemWidth();
+      const containerWidth = rollerContainer.offsetWidth;
+      const centerOffset = (containerWidth / 2) - (rollerItemWidth / 2);
+      const scrollDistance = (rollerItemWidth * (scrollItems.length - 1)) - centerOffset;
+
+      roller.style.transition = 'left 4s cubic-bezier(0.25, 0.1, 0.25, 1)';
+      roller.style.left = `-${scrollDistance}px`;
+
+      roller.addEventListener('transitionend', () => {
+        alert(`You got: ${finalItem.name}! 🎉`);
+        isRolling = false;
+      }, { once: true });
+    });
+  </script>
+</body>
+</html>
