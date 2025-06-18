@@ -121,8 +121,10 @@
   <script>
     // Initialize Supabase client
     const supabaseUrl = 'https://rkxkrfjeqtxrkbgjutvf.supabase.co'; // Your Supabase project URL
-    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJreGtyZmplcXR4cmtiZ2p1dHZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODEwMDUsImV4cCI6MjA2NTg1NzAwNX0.sJjLFBn3FZRwjJNRuRozzNea85CK7KYa_QGRZcVvmeA'; // REPLACE this with your anon public API key
-    const supabase = supabase.createClient(supabaseUrl, supabaseKey);
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJreGtyZmplcXR4cmtiZ2p1dHZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODEwMDUsImV4cCI6MjA2NTg1NzAwNX0.sJjLFBn3FZRwjJNRuRozzNea85CK7KYa_QGRZcVvmeA'; // Your anon public API key
+
+    // Fix here: use createClient() from the loaded supabase script, not supabase.createClient
+    const supabase = createClient(supabaseUrl, supabaseKey);
 
     const messagesDiv = document.getElementById('messages');
     const messageInput = document.getElementById('messageInput');
