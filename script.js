@@ -1,4 +1,4 @@
-// Your existing code (case opener game)
+// Your existing case opener code
 const cases = {
   "Final nail in the coffin": [
     { name: "Nail", weight: 70, image: "images/nail.jpg" },
@@ -19,7 +19,6 @@ const cases = {
 
 const currentCaseName = "Final nail in the coffin";
 const items = cases[currentCaseName];
-
 document.getElementById('caseTitle').textContent = currentCaseName;
 
 function getRandomItem() {
@@ -123,41 +122,65 @@ document.getElementById('openCase').addEventListener('click', () => {
 
 // ======= Supabase Chat Integration =======
 
-// Load Supabase JS client via CDN module loader (make sure your script tag uses type="module")
-// import { createClient } from 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/+esm';
-
-// Since you probably can't use import in normal <script>, use this:
+// Load Supabase JS SDK dynamically
 const script = document.createElement('script');
 script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js';
 script.onload = () => {
   const supabaseUrl = 'https://rkxkrfjeqtxrkbgjutvf.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJreGtyZmplcXR4cmtiZ2p1dHZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODEwMDUsImV4cCI6MjA2NTg1NzAwNX0.sJjLFBn3FZRwjJNRuRozzNea85CK7KYa_QGRZcVvmeA'; // Replace with your anon key
+  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJreGtyZmplcXR4cmtiZ2p1dHZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODEwMDUsImV4cCI6MjA2NTg1NzAwNX0.sJjLFBn3FZRwjJNRuRozzNea85CK7KYa_QGRZcVvmeA';
   const supabase = supabasejs.createClient(supabaseUrl, supabaseKey);
 
-  // Send message function
-  async function sendMessage(content, username) {
-    const { data, error } = await supabase
-      .from('messages')
-      .insert([{ content, username }]);
-    if (error) {
-      console.error('Error sending message:', error);
-      alert('Failed to send message: ' + error.message);
-    }
-  }
-
-  // Hook form submit
+  const messagesDiv = document.getElementById('messages');
   const chatForm = document.getElementById('chat-form');
   const chatInput = document.getElementById('chat-input');
 
-  if (chatForm && chatInput) {
-    chatForm.addEventListener('submit', e => {
-      e.preventDefault();
-      const message = chatInput.value.trim();
-      if (message.length > 0) {
-        sendMessage(message, 'Anonymous'); // change username as needed
-        chatInput.value = '';
-      }
-    });
+  function addMessage(message) {
+    const div = document.createElement('div');
+    div.textContent = message;
+    div.style.padding = '6px 0';
+    messagesDiv.appendChild(div);
+    messagesDiv.scrollTop = messagesDiv.scrollHeight;
   }
+
+  // Load last 50 messages
+  async function loadMessages() {
+    const { data, error } = await supabase
+      .from('messages')
+      .select('*')
+      .order('created_at', { ascending: true })
+      .limit(50);
+
+    if (error) {
+      console.error('Error loading messages:', error);
+      return;
+    }
+    data.forEach(msg => addMessage(`${msg.username || 'Anon'}: ${msg.content}`));
+  }
+
+  loadMessages();
+
+  // Realtime subscription to new messages
+  supabase
+    .channel('public:messages')
+    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
+      addMessage(`${payload.new.username || 'Anon'}: ${payload.new.content}`);
+    })
+    .subscribe();
+
+  // Send message handler
+  chatForm.addEventListener('submit', async e => {
+    e.preventDefault();
+    const content = chatInput.value.trim();
+    if (!content) return;
+    const { error } = await supabase
+      .from('messages')
+      .insert([{ content, username: 'Anonymous' }]);
+    if (error) {
+      console.error('Error sending message:', error);
+      alert('Failed to send message: ' + error.message);
+      return;
+    }
+    chatInput.value = '';
+  });
 };
 document.head.appendChild(script);
