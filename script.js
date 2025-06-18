@@ -1,4 +1,4 @@
-// Your existing case opener code
+// Define cases data
 const cases = {
   "Final nail in the coffin": [
     { name: "Nail", weight: 70, image: "images/nail.jpg" },
@@ -17,10 +17,14 @@ const cases = {
   ]
 };
 
+// Choose which case to open here:
 const currentCaseName = "Final nail in the coffin";
 const items = cases[currentCaseName];
+
+// Update the title in HTML
 document.getElementById('caseTitle').textContent = currentCaseName;
 
+// Weighted random item selection
 function getRandomItem() {
   const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
   let random = Math.random() * totalWeight;
@@ -30,6 +34,7 @@ function getRandomItem() {
   }
 }
 
+// Create an array of items to scroll through
 function generateScrollItems(count) {
   const scrollItems = [];
   for (let i = 0; i < count; i++) {
@@ -38,9 +43,10 @@ function generateScrollItems(count) {
   return scrollItems;
 }
 
+// Fill roller div with items
 function fillRoller(scrollItems) {
   const roller = document.getElementById('roller');
-  roller.innerHTML = '';
+  roller.innerHTML = ''; // clear previous items
   scrollItems.forEach(item => {
     const div = document.createElement('div');
     div.className = 'roller-item';
@@ -60,9 +66,10 @@ function fillRoller(scrollItems) {
   });
 }
 
+// Calculate width of one roller item including margin
 function getRollerItemWidth() {
   const rollerItem = document.querySelector('.roller-item');
-  if (!rollerItem) return 140 + 20;
+  if (!rollerItem) return 140 + 20; // fallback to 160px (140 + margins)
   const style = getComputedStyle(rollerItem);
   const width = rollerItem.offsetWidth;
   const marginLeft = parseFloat(style.marginLeft);
@@ -70,20 +77,22 @@ function getRollerItemWidth() {
   return width + marginLeft + marginRight;
 }
 
+// Display the odds list below the button
 function displayOdds() {
   const oddsListDiv = document.getElementById('oddsList');
-  if (!oddsListDiv) return;
-  oddsListDiv.innerHTML = '';
+  if (!oddsListDiv) return; // safety check if div doesn't exist
+  oddsListDiv.innerHTML = ''; // clear previous odds
 
   const totalWeight = items.reduce((sum, i) => sum + i.weight, 0);
   items.forEach(item => {
     const oddsPercent = ((item.weight / totalWeight) * 100).toFixed(1);
     const p = document.createElement('p');
-    p.textContent = `${item.name}: ${oddsPercent}% chance`;
+    p.textContent = ${item.name}: ${oddsPercent}% chance;
     oddsListDiv.appendChild(p);
   });
 }
 
+// Initialize odds display on load
 displayOdds();
 
 const roller = document.getElementById('roller');
@@ -91,96 +100,38 @@ const rollerContainer = document.getElementById('roller-container');
 let isRolling = false;
 
 document.getElementById('openCase').addEventListener('click', () => {
-  if (isRolling) return;
+  if (isRolling) return; // prevent multiple clicks
   isRolling = true;
 
-  const scrollItemsCount = 30;
-  const finalItem = getRandomItem();
+  const scrollItemsCount = 30; // how many items to scroll through
+  const finalItem = getRandomItem(); // final prize item
   const scrollItems = generateScrollItems(scrollItemsCount);
-  scrollItems.push(finalItem);
+  scrollItems.push(finalItem); // final item at the end
 
   fillRoller(scrollItems);
 
+  // Reset roller position
   roller.style.transition = 'none';
   roller.style.left = '0px';
 
+  // Force reflow so transition reset takes effect
   void roller.offsetWidth;
 
+  // Calculate item width dynamically
   const rollerItemWidth = getRollerItemWidth();
+
+  // Calculate scroll distance to center final item
   const containerWidth = rollerContainer.offsetWidth;
   const centerOffset = (containerWidth / 2) - (rollerItemWidth / 2);
   const scrollDistance = (rollerItemWidth * (scrollItems.length - 1)) - centerOffset;
 
+  // Animate scroll
   roller.style.transition = 'left 4s cubic-bezier(0.25, 0.1, 0.25, 1)';
-  roller.style.left = `-${scrollDistance}px`;
+  roller.style.left = -${scrollDistance}px;
 
+  // After animation ends
   roller.addEventListener('transitionend', () => {
-    alert(`You got: ${finalItem.name}! 🎉`);
+    alert(You got: ${finalItem.name}! 🎉);
     isRolling = false;
   }, { once: true });
 });
-
-// ======= Supabase Chat Integration =======
-
-// Load Supabase JS SDK dynamically
-const script = document.createElement('script');
-script.src = 'https://cdn.jsdelivr.net/npm/@supabase/supabase-js/dist/supabase.min.js';
-script.onload = () => {
-  const supabaseUrl = 'https://rkxkrfjeqtxrkbgjutvf.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJreGtyZmplcXR4cmtiZ2p1dHZmIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NTAyODEwMDUsImV4cCI6MjA2NTg1NzAwNX0.sJjLFBn3FZRwjJNRuRozzNea85CK7KYa_QGRZcVvmeA';
-  const supabase = supabasejs.createClient(supabaseUrl, supabaseKey);
-
-  const messagesDiv = document.getElementById('messages');
-  const chatForm = document.getElementById('chat-form');
-  const chatInput = document.getElementById('chat-input');
-
-  function addMessage(message) {
-    const div = document.createElement('div');
-    div.textContent = message;
-    div.style.padding = '6px 0';
-    messagesDiv.appendChild(div);
-    messagesDiv.scrollTop = messagesDiv.scrollHeight;
-  }
-
-  // Load last 50 messages
-  async function loadMessages() {
-    const { data, error } = await supabase
-      .from('messages')
-      .select('*')
-      .order('created_at', { ascending: true })
-      .limit(50);
-
-    if (error) {
-      console.error('Error loading messages:', error);
-      return;
-    }
-    data.forEach(msg => addMessage(`${msg.username || 'Anon'}: ${msg.content}`));
-  }
-
-  loadMessages();
-
-  // Realtime subscription to new messages
-  supabase
-    .channel('public:messages')
-    .on('postgres_changes', { event: 'INSERT', schema: 'public', table: 'messages' }, payload => {
-      addMessage(`${payload.new.username || 'Anon'}: ${payload.new.content}`);
-    })
-    .subscribe();
-
-  // Send message handler
-  chatForm.addEventListener('submit', async e => {
-    e.preventDefault();
-    const content = chatInput.value.trim();
-    if (!content) return;
-    const { error } = await supabase
-      .from('messages')
-      .insert([{ content, username: 'Anonymous' }]);
-    if (error) {
-      console.error('Error sending message:', error);
-      alert('Failed to send message: ' + error.message);
-      return;
-    }
-    chatInput.value = '';
-  });
-};
-document.head.appendChild(script);
