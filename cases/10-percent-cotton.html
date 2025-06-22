@@ -11,6 +11,10 @@
       background: #111;
       color: #eee;
     }
+    #balance {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
     h1 {
       margin-bottom: 20px;
     }
@@ -91,6 +95,9 @@
 </head>
 <body>
 
+  <!-- ✅ Balance always at the top -->
+  <h2 id="balance">Balance: 100</h2>
+
   <!-- Back Button -->
   <button id="backButton" onclick="goBack()">Back to Main Page</button>
 
@@ -106,6 +113,29 @@
     function goBack() {
       window.location.href = "../index.html";
     }
+
+    // ✅ NEW: LocalStorage balance
+    let balance = localStorage.getItem('balance');
+    if (balance === null) {
+      balance = 100;
+      localStorage.setItem('balance', balance);
+    } else {
+      balance = parseInt(balance);
+    }
+
+    function updateBalanceDisplay() {
+      document.getElementById('balance').textContent = `Balance: ${balance}`;
+    }
+
+    updateBalanceDisplay();
+
+    const caseCost = 20;
+
+    const itemValues = {
+      "T-Shirt": 15,
+      "Jeans": 30,
+      "Cotton Bag": 50
+    };
 
     const items = [
       { name: "T-Shirt", weight: 60, image: "./images/tshirt.png" },
@@ -182,6 +212,16 @@
 
     document.getElementById('openCase').addEventListener('click', () => {
       if (isRolling) return;
+
+      if (balance < caseCost) {
+        alert("Not enough balance to open this case!");
+        return;
+      }
+
+      balance -= caseCost;
+      localStorage.setItem('balance', balance);
+      updateBalanceDisplay();
+
       isRolling = true;
 
       const scrollItemsCount = 30;
@@ -204,7 +244,11 @@
       roller.style.left = `-${scrollDistance}px`;
 
       roller.addEventListener('transitionend', () => {
-        alert(`You got: ${finalItem.name}! 🎉`);
+        const reward = itemValues[finalItem.name] || 0;
+        balance += reward;
+        localStorage.setItem('balance', balance);
+        updateBalanceDisplay();
+        alert(`You got: ${finalItem.name}! 🎉 You earned ${reward}.`);
         isRolling = false;
       }, { once: true });
     });
