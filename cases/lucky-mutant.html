@@ -11,6 +11,10 @@
       background: #111;
       color: #eee;
     }
+    #balance {
+      font-size: 22px;
+      margin-bottom: 20px;
+    }
     h1 {
       margin-bottom: 20px;
     }
@@ -91,7 +95,10 @@
 </head>
 <body>
 
-  <!-- ✅ Back Button -->
+  <!-- Balance display at the top -->
+  <h2 id="balance">Balance: 100</h2>
+
+  <!-- Back Button -->
   <button id="backButton" onclick="goBack()">Back to Main Page</button>
 
   <h1>Lucky Mutant</h1>
@@ -103,15 +110,38 @@
   </div>
 
   <script>
-    // ✅ Back button goes UP one level to index.html
     function goBack() {
       window.location.href = "../index.html";
     }
 
+    // LocalStorage balance management
+    let balance = localStorage.getItem('balance');
+    if (balance === null) {
+      balance = 100;
+      localStorage.setItem('balance', balance);
+    } else {
+      balance = parseInt(balance);
+    }
+
+    function updateBalanceDisplay() {
+      document.getElementById('balance').textContent = `Balance: ${balance}`;
+    }
+
+    updateBalanceDisplay();
+
+    const caseCost = 20;
+
+    // Item values (reward amounts)
+    const itemValues = {
+      "Mutant Claw": 15,
+      "Mutant Eye": 30,
+      "Mutant Heart": 50
+    };
+
     const items = [
       { name: "Mutant Claw", weight: 50, image: "./images/mutant_claw.png" },
       { name: "Mutant Eye", weight: 35, image: "./images/mutant_eye.png" },
-      { name: "Mutant Tail", weight: 15, image: "./images/mutant_heart.png" },
+      { name: "Mutant Heart", weight: 15, image: "./images/mutant_heart.png" },
     ];
 
     function getRandomItem() {
@@ -170,7 +200,7 @@
       items.forEach(item => {
         const oddsPercent = ((item.weight / totalWeight) * 100).toFixed(1);
         const p = document.createElement('p');
-        p.textContent = `${item.name}: ${oddsPercent}% chance`;  // FIXED: added backticks here
+        p.textContent = `${item.name}: ${oddsPercent}% chance`;
         oddsListDiv.appendChild(p);
       });
     }
@@ -183,6 +213,16 @@
 
     document.getElementById('openCase').addEventListener('click', () => {
       if (isRolling) return;
+
+      if (balance < caseCost) {
+        alert("Not enough balance to open this case!");
+        return;
+      }
+
+      balance -= caseCost;
+      localStorage.setItem('balance', balance);
+      updateBalanceDisplay();
+
       isRolling = true;
 
       const scrollItemsCount = 30;
@@ -202,10 +242,14 @@
       const scrollDistance = (rollerItemWidth * (scrollItems.length - 1)) - centerOffset;
 
       roller.style.transition = 'left 4s cubic-bezier(0.25, 0.1, 0.25, 1)';
-      roller.style.left = `-${scrollDistance}px`;  // FIXED: added backticks here
+      roller.style.left = `-${scrollDistance}px`;
 
       roller.addEventListener('transitionend', () => {
-        alert(`You got: ${finalItem.name}! 🎉`);  // FIXED: added backticks here
+        const reward = itemValues[finalItem.name] || 0;
+        balance += reward;
+        localStorage.setItem('balance', balance);
+        updateBalanceDisplay();
+        alert(`You got: ${finalItem.name}! 🎉 You earned ${reward}.`);
         isRolling = false;
       }, { once: true });
     });
