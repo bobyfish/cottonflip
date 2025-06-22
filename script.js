@@ -1,3 +1,5 @@
+// === CS2 Case Opener with Balance and localStorage ===
+
 // Define cases data
 const cases = {
   "Final nail in the coffin": [
@@ -6,17 +8,66 @@ const cases = {
     { name: "Coffin", weight: 5, image: "images/coffin.jpg" },
   ],
   "10% Cotton": [
-    { name: "Cotton Ball", weight: 40, image: "images/cotton_ball.jpg" },
-    { name: "Cotton Gloves", weight: 35, image: "images/cotton_gloves.jpg" },
-    { name: "Cotton T-Shirt", weight: 25, image: "images/cotton_tshirt.jpg" },
+    { name: "T-Shirt", weight: 60, image: "images/cotton_ball.jpg" },
+    { name: "jeans", weight: 30, image: "images/cotton_gloves.jpg" },
+    { name: "Cotton bag", weight: 10, image: "images/cotton_tshirt.jpg" },
   ],
   "Lucky Mutant": [
-    { name: "Mutant Eye", weight: 50, image: "images/mutant_eye.jpg" },
-    { name: "Mutant Claw", weight: 30, image: "images/mutant_claw.jpg" },
-    { name: "Mutant Heart", weight: 20, image: "images/mutant_heart.jpg" },
+    { name: "Mutant Claw", weight: 50, image: "images/mutant_eye.jpg" },
+    { name: "Mutant Eye", weight: 35, image: "images/mutant_claw.jpg" },
+    { name: "Mutant Heart", weight: 15, image: "images/mutant_heart.jpg" },
   ]
 };
 
+// === NEW: Balance system with localStorage ===
+const caseCost = 20;
+
+// Load balance from localStorage or start with 100
+let balance = Number(localStorage.getItem('balance'));
+if (isNaN(balance)) {
+  balance = 100;
+}
+
+const itemValues = {
+  "Nail": 5,
+  "Hammer": 15,
+  "Coffin": 50,
+  "Cotton Ball": 10,
+  "Cotton Gloves": 20,
+  "Cotton T-Shirt": 40,
+  "Mutant Eye": 25,
+  "Mutant Claw": 35,
+  "Mutant Heart": 60
+};
+
+function updateBalanceDisplay() {
+  const balanceElement = document.getElementById('balance');
+  if (balanceElement) {
+    balanceElement.textContent = `Balance: ${balance}`;
+  }
+  // Save balance to localStorage
+  localStorage.setItem('balance', balance);
+}
+
+function resetBalance() {
+  balance = 100;
+  updateBalanceDisplay();
+}
+
+// Initialize balance display on page load
+updateBalanceDisplay();
+
+// Add event listener for reset button
+const resetBtn = document.getElementById('resetBalance');
+if (resetBtn) {
+  resetBtn.addEventListener('click', () => {
+    if (confirm("Are you sure you want to reset your balance to 100?")) {
+      resetBalance();
+    }
+  });
+}
+
+// === === ===
 // Choose which case to open here:
 const currentCaseName = "Final nail in the coffin";
 const items = cases[currentCaseName];
@@ -24,7 +75,7 @@ const items = cases[currentCaseName];
 // Update the title in HTML
 document.getElementById('caseTitle').textContent = currentCaseName;
 
-// Weighted random item selection
+// Fixed weighted random item selection
 function getRandomItem() {
   const totalWeight = items.reduce((sum, item) => sum + item.weight, 0);
   let random = Math.random() * totalWeight;
@@ -32,6 +83,7 @@ function getRandomItem() {
     if (random < item.weight) return item;
     random -= item.weight;
   }
+  return items[items.length - 1]; // fallback
 }
 
 // Create an array of items to scroll through
@@ -87,7 +139,7 @@ function displayOdds() {
   items.forEach(item => {
     const oddsPercent = ((item.weight / totalWeight) * 100).toFixed(1);
     const p = document.createElement('p');
-    p.textContent = ${item.name}: ${oddsPercent}% chance;
+    p.textContent = `${item.name}: ${oddsPercent}% chance`;
     oddsListDiv.appendChild(p);
   });
 }
@@ -99,39 +151,50 @@ const roller = document.getElementById('roller');
 const rollerContainer = document.getElementById('roller-container');
 let isRolling = false;
 
-document.getElementById('openCase').addEventListener('click', () => {
-  if (isRolling) return; // prevent multiple clicks
+function openCase() {
+  if (isRolling) return;
+
+  if (balance < caseCost) {
+    alert("Not enough balance to open this case!");
+    return;
+  }
+
+  balance -= caseCost;
+  updateBalanceDisplay();
+
   isRolling = true;
 
-  const scrollItemsCount = 30; // how many items to scroll through
-  const finalItem = getRandomItem(); // final prize item
+  const scrollItemsCount = 30;
+  const finalItem = getRandomItem();
   const scrollItems = generateScrollItems(scrollItemsCount);
-  scrollItems.push(finalItem); // final item at the end
+  scrollItems.push(finalItem);
 
   fillRoller(scrollItems);
 
-  // Reset roller position
   roller.style.transition = 'none';
   roller.style.left = '0px';
 
-  // Force reflow so transition reset takes effect
-  void roller.offsetWidth;
+  void roller.offsetWidth; // force reflow
 
-  // Calculate item width dynamically
   const rollerItemWidth = getRollerItemWidth();
-
-  // Calculate scroll distance to center final item
   const containerWidth = rollerContainer.offsetWidth;
   const centerOffset = (containerWidth / 2) - (rollerItemWidth / 2);
   const scrollDistance = (rollerItemWidth * (scrollItems.length - 1)) - centerOffset;
 
-  // Animate scroll
   roller.style.transition = 'left 4s cubic-bezier(0.25, 0.1, 0.25, 1)';
-  roller.style.left = -${scrollDistance}px;
+  roller.style.left = `-${scrollDistance}px`;
 
-  // After animation ends
-  roller.addEventListener('transitionend', () => {
-    alert(You got: ${finalItem.name}! 🎉);
+  // Remove old listeners and add new one
+  roller.replaceWith(roller.cloneNode(true));
+  const newRoller = document.getElementById('roller');
+
+  newRoller.addEventListener('transitionend', () => {
+    const reward = itemValues[finalItem.name] || 0;
+    balance += reward;
+    updateBalanceDisplay();
+    alert(`You got: ${finalItem.name}! 🎉 You earned ${reward}.`);
     isRolling = false;
   }, { once: true });
-});
+}
+
+document.getElementById('openCase').addEventListener('click', openCase);
