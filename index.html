@@ -12,7 +12,33 @@
       text-align: center;
       padding: 40px;
     }
-    h1 { margin-bottom: 40px; }
+    #balance-container {
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      gap: 15px;
+      margin-bottom: 20px;
+    }
+    #balance {
+      font-size: 22px;
+      margin: 0;
+    }
+    #resetBalance {
+      padding: 6px 12px;
+      font-size: 16px;
+      cursor: pointer;
+      border-radius: 6px;
+      border: none;
+      background-color: #0a84ff;
+      color: #fff;
+      transition: background-color 0.3s;
+    }
+    #resetBalance:hover {
+      background-color: #006fcc;
+    }
+    h1 {
+      margin-bottom: 40px;
+    }
     .cases-grid {
       display: flex;
       justify-content: center;
@@ -49,20 +75,47 @@
   </style>
 </head>
 <body>
+  <!-- ✅ Balance and Reset Button -->
+  <div id="balance-container">
+    <h2 id="balance">Balance: 100</h2>
+    <button id="resetBalance">Reset Balance</button>
+  </div>
+
   <h1>Choose a Case to Open</h1>
+
   <div class="cases-grid">
     <a href="cases/final-nail.html" class="case-card">
-      <img src="images/cases/final-nail.jpg" alt="Final Nail in the Coffin" />
+      <img src="cases/images/cases/nailcover.png" alt="Final Nail in the Coffin" />
       <div class="case-name">Final Nail in the Coffin</div>
     </a>
     <a href="cases/10-percent-cotton.html" class="case-card">
-      <img src="images/cases/10-percent-cotton.jpg" alt="10% Cotton" />
+      <img src="cases/images/cases/10percentcottoncover.png" alt="10% Cotton" />
       <div class="case-name">10% Cotton</div>
     </a>
     <a href="cases/lucky-mutant.html" class="case-card">
-      <img src="images/cases/lucky-mutant.jpg" alt="Lucky Mutant" />
+      <img src="cases/images/cases/luckymutant.png" alt="Lucky Mutant" />
       <div class="case-name">Lucky Mutant</div>
     </a>
   </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Reset button logic to reset balance
+    const resetBtn = document.getElementById('resetBalance');
+    resetBtn.addEventListener('click', () => {
+      if (confirm("Are you sure you want to reset your balance to 100?")) {
+        localStorage.setItem('balance', '100');
+        // If your script.js updates the balance display on load from localStorage, you may want to reload the page:
+        location.reload();
+      }
+    });
+
+    // Update the balance display on page load from localStorage
+    const balanceElement = document.getElementById('balance');
+    const savedBalance = localStorage.getItem('balance');
+    if (savedBalance !== null) {
+      balanceElement.textContent = `Balance: ${savedBalance}`;
+    }
+  </script>
 </body>
 </html>
